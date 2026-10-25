@@ -29,7 +29,7 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "2.0.0"
+VERSION = "2.1.1"
 
 DATA = Path(os.environ.get("FORKWATCH_DATA_DIR", "/data"))
 LEGACY_REPOS_FILE = Path(os.environ.get("FORKWATCH_REPOS_FILE", "/config/repos.conf"))

@@ -230,3 +230,18 @@ The dashboard is a thin client on a small JSON API:
 ## Security
 
 The dashboard has **no authentication**, and it can accept updates, remove repositories and replace the webhook or the token. It never displays the secrets, but anyone who can open it can overwrite them. Keep it on the local network, or reach it through the VPN, and never expose it publicly.
+
+## Changelog
+
+### 2.1.1
+- Fixed: the **Cancel** and **×** buttons of the dialogs did nothing when a field was empty or invalid (the browser asked to fill in the field instead of closing the dialog).
+
+### 2.1.0
+- Only the main branch is strict: a force-push on a secondary branch is applied, and the old commit is kept under `refs/forkwatch/rewritten/`.
+- New **Ignored branches** setting, prefilled with `release-please--*`, `dependabot/*` and `renovate/*`.
+- A blocked repository is re-analysed on every check and unblocked automatically when the rules or the upstream allow it. The same block is no longer notified again.
+
+### 2.0.0
+- Web dashboard with actions (add, check, accept, pause, remove, history, archive download), settings, French and English, dark mode.
+- Discord webhook and GitHub token managed from the dashboard.
+- Engine rewritten in Python, reusing the v1 data folder.

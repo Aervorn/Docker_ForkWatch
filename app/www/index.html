@@ -695,7 +695,7 @@ $("#btn-run").addEventListener("click", async () => {
 });
 
 /* ------------------------------------------------------------------ dialogs */
-const dlgHead = title => `<div class="dlg-head"><h2>${title}</h2><button class="btn ghost icon" value="cancel" formmethod="dialog" aria-label="${esc(tr("close"))}">${icon("x")}</button></div>`;
+const dlgHead = title => `<div class="dlg-head"><h2>${title}</h2><button class="btn ghost icon" value="cancel" formmethod="dialog" formnovalidate aria-label="${esc(tr("close"))}">${icon("x")}</button></div>`;
 
 // ---- Add
 $("#btn-add").addEventListener("click", () => {
@@ -704,7 +704,7 @@ $("#btn-add").addEventListener("click", () => {
     <div class="dlg-body">
       <p class="hint">${t("add_hint")}</p>
       <div class="field"><label for="a-url">${t("add_url")}</label>
-        <div class="row"><input type="text" id="a-url" placeholder="https://github.com/…" autocomplete="off" required>
+        <div class="row"><input type="text" id="a-url" placeholder="https://github.com/…" autocomplete="off">
         <button class="btn" type="button" id="a-detect">${t("detect")}</button></div></div>
       <p class="note" id="a-note" hidden></p>
       <div id="a-fields" hidden style="display:grid;gap:14px">
@@ -713,7 +713,7 @@ $("#btn-add").addEventListener("click", () => {
         <div class="field"><label for="a-fork">${t("add_fork")}</label><input type="text" id="a-fork" autocomplete="off" placeholder="owner/repo"><small>${t("add_fork_hint")}</small></div>
       </div>
     </div>
-    <div class="dlg-foot"><button class="btn" value="cancel" formmethod="dialog">${t("cancel")}</button>
+    <div class="dlg-foot"><button class="btn" value="cancel" formmethod="dialog" formnovalidate>${t("cancel")}</button>
       <button class="btn primary" type="submit" id="a-submit" disabled>${icon("plus")}${t("add_confirm")}</button></div></form>`;
   const note = d.querySelector("#a-note"), fields = d.querySelector("#a-fields"), submit = d.querySelector("#a-submit");
   fields.hidden = true; fields.style.display = "none";
@@ -792,7 +792,7 @@ $("#btn-settings").addEventListener("click", () => {
     </div>
     <div class="dlg-foot">
       <button class="btn" type="button" id="s-test" style="margin-right:auto">${icon("send")}${t("test_discord")}</button>
-      <button class="btn" value="cancel" formmethod="dialog">${t("cancel")}</button>
+      <button class="btn" value="cancel" formmethod="dialog" formnovalidate>${t("cancel")}</button>
       <button class="btn primary" type="submit">${icon("check")}${t("save")}</button></div></form>`;
   const note = d.querySelector("#s-note");
   const cleared = new Set();
@@ -848,7 +848,7 @@ function openAccept(r) {
       ${reasons ? `<p class="hint">${t("acc_intro")}</p><ul class="reasons">${reasons}</ul>` : legacy}
       <p class="note">${t("acc_after")}</p>
     </div>
-    <div class="dlg-foot"><button class="btn" value="cancel" formmethod="dialog">${t("cancel")}</button>
+    <div class="dlg-foot"><button class="btn" value="cancel" formmethod="dialog" formnovalidate>${t("cancel")}</button>
       <button class="btn danger" type="submit">${icon("shield")}${t("acc_confirm")}</button></div></form>`;
   d.querySelector("#f-acc").addEventListener("submit", async e => {
     if (e.submitter && e.submitter.value === "cancel") return;
@@ -866,7 +866,7 @@ function openRemove(r) {
   d.innerHTML = `<form method="dialog" id="f-rm">${dlgHead(t("rm_title", { name: r.name }))}
     <div class="dlg-body"><p class="hint">${t("rm_text")}</p>
       <label class="check"><input type="checkbox" id="rm-purge">${t("rm_purge")}</label></div>
-    <div class="dlg-foot"><button class="btn" value="cancel" formmethod="dialog">${t("cancel")}</button>
+    <div class="dlg-foot"><button class="btn" value="cancel" formmethod="dialog" formnovalidate>${t("cancel")}</button>
       <button class="btn danger" type="submit">${icon("trash")}${t("rm_confirm")}</button></div></form>`;
   d.querySelector("#f-rm").addEventListener("submit", async e => {
     if (e.submitter && e.submitter.value === "cancel") return;
