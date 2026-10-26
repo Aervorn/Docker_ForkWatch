@@ -205,11 +205,11 @@ Removing a repository from the dashboard always keeps its archives. You can choo
 The dashboard covers everything, but the same actions are available from the host:
 
 ```sh
-docker exec forkwatch python3 /app/forkwatch.py run            # check all repositories
-docker exec forkwatch python3 /app/forkwatch.py check NAME     # check one repository
-docker exec forkwatch python3 /app/forkwatch.py accept NAME    # apply a blocked update
-docker exec forkwatch python3 /app/forkwatch.py test-notif     # test the Discord webhook
-docker logs -f forkwatch                                       # follow the activity
+docker exec ForkWatch python3 /app/forkwatch.py run            # check all repositories
+docker exec ForkWatch python3 /app/forkwatch.py check NAME     # check one repository
+docker exec ForkWatch python3 /app/forkwatch.py accept NAME    # apply a blocked update
+docker exec ForkWatch python3 /app/forkwatch.py test-notif     # test the Discord webhook
+docker logs -f ForkWatch                                       # follow the activity
 ```
 
 ## API
