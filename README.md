@@ -27,10 +27,8 @@ Everything is managed from a web dashboard:
 
 ## Layout
 
-The project lives in the `forkwatch/` subfolder of the `Docker_stacks` repository:
-
 ```
-forkwatch/
+Docker_ForkWatch/
 ├── Dockerfile
 ├── forkwatch.yaml         compose file
 ├── app/
@@ -40,7 +38,7 @@ forkwatch/
     └── dashboard.png
 ```
 
-Everything else lives in a single folder on the NAS, `/volume1/docker/forkwatch/data/`, which ForkWatch fills by itself:
+Everything else lives in a single data folder on your server, mounted at `/data` in the container (for example `/path/to/forkwatch/data`). ForkWatch fills it by itself:
 
 | Path in `data/` | Content |
 |---|---|
@@ -50,14 +48,22 @@ Everything else lives in a single folder on the NAS, `/volume1/docker/forkwatch/
 | `archives/` | `.bundle` archives |
 | `forkwatch.log` | Activity log |
 
-## Deployment with Dockhand
+## Deployment
 
-1. Create the data folder on the NAS:
+ForkWatch runs on any machine with Docker and Docker Compose: a NAS, a home server, a Raspberry Pi…
+
+1. Get the code and create the data folder:
    ```sh
-   mkdir -p /volume1/docker/forkwatch/data
+   git clone https://github.com/Aervorn/Docker_ForkWatch.git
+   cd Docker_ForkWatch
+   mkdir -p /path/to/forkwatch/data
    ```
-2. In Dockhand, create a Git stack on `Docker_stacks` with the compose path `forkwatch/forkwatch.yaml`.
-3. Open the dashboard at `http://NAS-IP:9999`:
+2. In `forkwatch.yaml`, replace `/<YOUR>/<PATH>/forkwatch/data` with your data folder, and adjust `TZ` and the port if needed. Then start the container:
+   ```sh
+   docker compose -f forkwatch.yaml up -d
+   ```
+   You can also deploy `forkwatch.yaml` as a stack with your usual tool (Portainer, Dockhand…).
+3. Open the dashboard at `http://SERVER-IP:9999`:
    - in **Settings**, paste the Discord webhook, and optionally the GitHub token, then click **Test Discord**;
    - add your forks with the **Add** button.
 
@@ -72,7 +78,7 @@ The v2 reuses the v1 data folder as it is: Git mirrors, archives and the state o
 To import the v1 list, add this mount to `forkwatch.yaml` for the **first start** only:
 
 ```yaml
-      - /volume1/docker/forkwatch/config:/config:ro
+      - /path/to/forkwatch/config:/config:ro
 ```
 
 On its first start, v2 then imports `/config/repos.conf`. From then on, the repository list lives in `data/forkwatch.json` and is managed **only from the dashboard**: `repos.conf` is ignored, and you can remove the mount.
@@ -177,19 +183,16 @@ To review a blocked update, click **Accept…** on the card:
 - the dialog lists the reasons for the block, with a link to the GitHub comparison;
 - if you accept, the current state is archived and also kept in the repository under `refs/forkwatch/before-accept/<date>/`, then the upstream version is applied.
 
-## Off-site backup (OneDrive)
+## Keeping a second copy
 
-The archives are in `/volume1/docker/forkwatch/data/archives/<name>/*.bundle`.
+The archives are in `data/archives/<name>/*.bundle`. They are the copy you'll want if a repository disappears, so it's a good idea to back them up automatically to a second storage (another disk, another machine or a cloud service), with the backup tool you already use.
 
-To copy them to OneDrive:
+A few tips:
 
-1. In **Cloud Sync**, create a OneDrive task on that folder.
-2. Make it **one-way** (NAS to cloud).
-3. Enable the option that **does not delete** files on the cloud side when they are deleted locally. OneDrive then also keeps the archives that local rotation removes.
+- Prefer a **one-way** backup that **doesn't delete** files on the backup side when they're deleted locally: it then also keeps the archives that local rotation removes.
+- Don't back up `data/repos/`. It contains working Git repositories, made of thousands of small files that backup tools handle badly.
 
-Do **not** sync `data/repos/`. It contains working Git repositories, made of thousands of small files that cloud sync clients handle badly.
-
-To restore an archive, downloaded from the card's **⋯** menu or taken from OneDrive:
+To restore an archive, downloaded from the card's **⋯** menu or taken from your backup:
 
 ```sh
 git clone name-YYYYMMDD-HHMMSS.bundle my-repo
@@ -199,7 +202,7 @@ Removing a repository from the dashboard always keeps its archives. You can choo
 
 ## Command line
 
-The dashboard covers everything, but the same actions are available from the NAS:
+The dashboard covers everything, but the same actions are available from the host:
 
 ```sh
 docker exec forkwatch python3 /app/forkwatch.py run            # check all repositories
