@@ -1,7 +1,6 @@
 services:
   forkwatch:
-    build: .
-    image: forkwatch:2
+    image: aervorn/forkwatch:2     # to build from source instead: replace this line with "build: ."
     container_name: ForkWatch
     restart: unless-stopped
     ports:

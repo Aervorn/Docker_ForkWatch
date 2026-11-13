@@ -30,6 +30,8 @@ Everything is managed from a web dashboard:
 
 ```
 Docker_ForkWatch/
+├── .github/workflows/
+│   └── docker.yml         publishes the image to Docker Hub on each release
 ├── Dockerfile
 ├── forkwatch.yaml         compose file
 ├── app/
@@ -53,10 +55,11 @@ Everything else lives in a single data folder on your server, mounted at `/data`
 
 ForkWatch runs on any machine with Docker and Docker Compose: a NAS, a home server, a Raspberry Pi…
 
-1. Get the code and create the data folder:
+The image is published on Docker Hub as [`aervorn/forkwatch`](https://hub.docker.com/r/aervorn/forkwatch), for `amd64` and `arm64`.
+
+1. Get the compose file and create the data folder:
    ```sh
-   git clone https://github.com/Aervorn/Docker_ForkWatch.git
-   cd Docker_ForkWatch
+   curl -O https://raw.githubusercontent.com/Aervorn/Docker_ForkWatch/master/forkwatch.yaml
    mkdir -p /path/to/forkwatch/data
    ```
 2. In `forkwatch.yaml`, replace `/<YOUR>/<PATH>/forkwatch/data` with your data folder, and adjust `TZ` and the port if needed. Then start the container:
@@ -71,6 +74,19 @@ ForkWatch runs on any machine with Docker and Docker Compose: a NAS, a home serv
 ForkWatch checks all repositories at the frequency set in **Settings** (every 6 hours by default). The first check runs when the container starts for the first time.
 
 After a redeploy, ForkWatch only checks again if the last run is older than the interval.
+
+### Updating
+
+```sh
+docker compose -f forkwatch.yaml pull
+docker compose -f forkwatch.yaml up -d
+```
+
+The compose file follows the `2` tag, which always points to the latest 2.x release. To stay on an exact version, use a full tag such as `aervorn/forkwatch:2.2.0`.
+
+### Building from source
+
+Clone the repository, replace the `image:` line of `forkwatch.yaml` with `build: .`, then run `docker compose -f forkwatch.yaml up -d --build`.
 
 ## Upgrading from v1
 
@@ -250,6 +266,7 @@ The dashboard has **no authentication**, and it can accept updates, remove repos
 ## Changelog
 
 ### 2.2.0
+- The image is now published on Docker Hub (`aervorn/forkwatch`, `amd64` and `arm64`): no need to clone and build any more.
 - Everything the API can do is now available from the dashboard.
 - New **Edit…** action in the card's **⋯** menu: add, change or remove the GitHub fork of a repository.
 - New **Skip this check below** setting: the number of files under which the file-loss check doesn't apply (it was only settable through the API).
