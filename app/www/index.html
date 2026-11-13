@@ -196,6 +196,9 @@
   .reasons a { color: var(--accent); }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
   .field { align-content: start; }
+  .ro { font-size: 13.5px; overflow-wrap: anywhere; }
+  .ro a { color: var(--accent); text-decoration: none; }
+  .ro a:hover { text-decoration: underline; }
 
   /* Toasts */
   #toasts { position: fixed; right: 16px; bottom: 16px; display: grid; gap: 8px; z-index: 50; max-width: calc(100vw - 32px); }
@@ -242,6 +245,7 @@
 <dialog id="dlg-add"></dialog>
 <dialog id="dlg-settings"></dialog>
 <dialog id="dlg-accept"></dialog>
+<dialog id="dlg-edit"></dialog>
 <dialog id="dlg-remove"></dialog>
 <div id="toasts" aria-live="polite"></div>
 
@@ -259,6 +263,7 @@ const ICONS = {
   dots: '<circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/>',
   pause: '<path d="M9 5v14M15 5v14"/>',
   play: '<path d="M7 4l13 8-13 8z"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
   check: '<path d="M5 12l5 5L20 7"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
@@ -284,7 +289,7 @@ const I18N = {
     f_tags: "Tags", f_archives: "Archives", others: ["+ {n} autre", "+ {n} autres"], none_m: "aucun", none_f: "aucune",
     latest_tag: "dernier", archives_val: "{n} · dernière {t}",
     check_now: "Vérifier", accept: "Accepter…", history: "Historique", download: "Télécharger la dernière archive ({s})",
-    more: "Plus d'actions", pause: "Mettre en pause", resume: "Reprendre la surveillance", remove: "Retirer…",
+    more: "Plus d'actions", edit: "Modifier…", pause: "Mettre en pause", resume: "Reprendre la surveillance", remove: "Retirer…",
     empty: "Aucun dépôt surveillé. Ajoute ton premier fork avec le bouton « Ajouter ».", no_match: "Aucun dépôt ne correspond.",
     footer: ["{n} dépôt surveillé · {k} archives conservées par dépôt · ForkWatch {v}", "{n} dépôts surveillés · {k} archives conservées par dépôt · ForkWatch {v}"],
     offline: "Serveur ForkWatch injoignable. Nouvelle tentative…",
@@ -296,6 +301,7 @@ const I18N = {
     set_title: "Paramètres", set_lang: "Langue de l'interface et des notifications", set_interval: "Fréquence des vérifications",
     every_h: "Toutes les {n} heures", every_1h: "Toutes les heures", every_24h: "Une fois par jour",
     set_keep: "Archives conservées par dépôt", set_shrink: "Bloquer si une branche perd plus de (%)", set_shrink_hint: "pourcentage de fichiers perdus d'un coup",
+    set_minfiles: "Ne pas contrôler sous (fichiers)", set_minfiles_hint: "une branche plus petite peut perdre des fichiers sans être bloquée",
     set_nochange: "Notifier aussi quand rien n'a changé", set_secrets: "Notifications et GitHub",
     sec_discord_hint: "Paramètres du salon Discord → Intégrations → Webhooks. Champ vide = inchangé.",
     sec_github_hint: "Facultatif : synchronise tes forks et détecte l'origine à l'ajout. Champ vide = inchangé.",
@@ -307,6 +313,8 @@ const I18N = {
     acc_title: "Accepter la mise à jour de {name} ?", acc_intro: "ForkWatch a bloqué cette mise à jour :",
     acc_after: "Si tu acceptes, l'état actuel est archivé et conservé dans le dépôt, puis la version upstream est appliquée. Le fork GitHub est ensuite synchronisé si possible.",
     acc_legacy: "Blocage hérité de la version 1, détail non disponible :", acc_confirm: "Accepter quand même", compare: "voir la comparaison",
+    ed_title: "Modifier {name}", ed_fork_hint: "owner/repo ou URL GitHub — synchronisé après chaque mise à jour saine si un token GitHub est configuré. Laisse vide pour retirer le fork : il ne sera plus synchronisé, rien n'est supprimé sur GitHub.",
+    t_fork_set: "{name} : fork {fork} enregistré", t_fork_removed: "{name} : fork retiré",
     rm_title: "Retirer {name} ?", rm_text: "Le dépôt ne sera plus surveillé.", rm_purge: "Supprimer aussi la copie locale (les archives .bundle sont conservées)", rm_confirm: "Retirer",
     t_saved: "Paramètres enregistrés", t_added: "{name} ajouté, première vérification lancée", t_queued: "Vérification de {name} lancée",
     t_run: "Vérification de tous les dépôts lancée", t_accept: "Application de la mise à jour de {name}…", t_removed: "{name} retiré",
@@ -345,7 +353,7 @@ const I18N = {
     f_tags: "Tags", f_archives: "Archives", others: "+ {n} more", none_m: "none", none_f: "none",
     latest_tag: "latest", archives_val: "{n} · latest {t}",
     check_now: "Check", accept: "Accept…", history: "History", download: "Download the latest archive ({s})",
-    more: "More actions", pause: "Pause", resume: "Resume watching", remove: "Remove…",
+    more: "More actions", edit: "Edit…", pause: "Pause", resume: "Resume watching", remove: "Remove…",
     empty: "No repository watched yet. Add your first fork with the “Add” button.", no_match: "No repository matches.",
     footer: ["{n} repository watched · {k} archives kept per repository · ForkWatch {v}", "{n} repositories watched · {k} archives kept per repository · ForkWatch {v}"],
     offline: "ForkWatch server unreachable. Retrying…",
@@ -357,6 +365,7 @@ const I18N = {
     set_title: "Settings", set_lang: "Language of the interface and notifications", set_interval: "Check frequency",
     every_h: "Every {n} hours", every_1h: "Every hour", every_24h: "Once a day",
     set_keep: "Archives kept per repository", set_shrink: "Block when a branch loses more than (%)", set_shrink_hint: "percentage of files lost at once",
+    set_minfiles: "Skip this check below (files)", set_minfiles_hint: "a smaller branch can lose files without being blocked",
     set_nochange: "Also notify when nothing changed", set_secrets: "Notifications and GitHub",
     sec_discord_hint: "Discord channel settings → Integrations → Webhooks. Empty field = unchanged.",
     sec_github_hint: "Optional: syncs your forks and detects the origin when adding. Empty field = unchanged.",
@@ -368,6 +377,8 @@ const I18N = {
     acc_title: "Accept the update of {name}?", acc_intro: "ForkWatch blocked this update:",
     acc_after: "If you accept, the current state is archived and kept in the repository, then the upstream version is applied. The GitHub fork is then synced when possible.",
     acc_legacy: "Block inherited from version 1, details unavailable:", acc_confirm: "Accept anyway", compare: "view the comparison",
+    ed_title: "Edit {name}", ed_fork_hint: "owner/repo or GitHub URL — synced after each healthy update when a GitHub token is set. Leave empty to remove the fork: it is no longer synced, nothing is deleted on GitHub.",
+    t_fork_set: "{name}: fork {fork} saved", t_fork_removed: "{name}: fork removed",
     rm_title: "Remove {name}?", rm_text: "The repository will no longer be watched.", rm_purge: "Also delete the local copy (.bundle archives are kept)", rm_confirm: "Remove",
     t_saved: "Settings saved", t_added: "{name} added, first check started", t_queued: "Check of {name} started",
     t_run: "Check of all repositories started", t_accept: "Applying the update of {name}…", t_removed: "{name} removed",
@@ -653,6 +664,7 @@ function card(r) {
         <button class="btn sm ghost icon" data-act="menu" title="${esc(tr("more"))}" aria-label="${esc(tr("more"))}" aria-expanded="${openMenu === r.name}">${icon("dots")}</button>
         ${openMenu === r.name ? `<div class="menu" role="menu">
           ${latest ? `<button data-act="download" role="menuitem">${icon("download")}${t("download", { s: size(latest.size) })}</button>` : ""}
+          <button data-act="edit" role="menuitem">${icon("edit")}${t("edit")}</button>
           <button data-act="${r.paused ? "resume" : "pause"}" role="menuitem">${icon(r.paused ? "play" : "pause")}${t(r.paused ? "resume" : "pause")}</button>
           <button data-act="remove" class="danger" role="menuitem">${icon("trash")}${t("remove")}</button>
         </div>` : ""}
@@ -675,6 +687,7 @@ $("#list").addEventListener("click", async e => {
     if (act === "check") { await api("POST", `api/repos/${encodeURIComponent(name)}/check`); toast(tr("t_queued", { name })); }
     else if (act === "history") { openHistory.has(name) ? openHistory.delete(name) : openHistory.add(name); render(); return; }
     else if (act === "accept") { openAccept(r); return; }
+    else if (act === "edit") { openEdit(r); render(); return; }
     else if (act === "remove") { openRemove(r); render(); return; }
     else if (act === "download") { const a = r.archives[0]; location.href = `api/repos/${encodeURIComponent(name)}/archives/${encodeURIComponent(a.file)}`; render(); return; }
     else if (act === "pause" || act === "resume") {
@@ -779,6 +792,7 @@ $("#btn-settings").addEventListener("click", () => {
         <div class="field"><label for="s-int">${t("set_interval")}</label><select id="s-int">${intervals}</select></div>
         <div class="field"><label for="s-keep">${t("set_keep")}</label><input type="number" id="s-keep" min="1" max="100" value="${s.keep_archives}"></div>
         <div class="field"><label for="s-shrink">${t("set_shrink")}</label><input type="number" id="s-shrink" min="10" max="95" value="${s.shrink_threshold}"><small>${t("set_shrink_hint")}</small></div>
+        <div class="field"><label for="s-minfiles">${t("set_minfiles")}</label><input type="number" id="s-minfiles" min="1" max="100000" value="${s.min_files_for_check}"><small>${t("set_minfiles_hint")}</small></div>
       </div>
       <div class="field"><label for="s-ignore">${t("set_ignore")}</label>
         <input type="text" id="s-ignore" value="${esc((s.ignore_branches || []).join(", "))}" autocomplete="off" spellcheck="false"><small>${t("set_ignore_hint")}</small></div>
@@ -826,6 +840,7 @@ $("#btn-settings").addEventListener("click", () => {
         interval_hours: +d.querySelector("#s-int").value,
         keep_archives: +d.querySelector("#s-keep").value,
         shrink_threshold: +d.querySelector("#s-shrink").value,
+        min_files_for_check: +d.querySelector("#s-minfiles").value,
         notify_no_change: d.querySelector("#s-nochange").checked,
         ignore_branches: d.querySelector("#s-ignore").value,
       });
@@ -858,6 +873,36 @@ function openAccept(r) {
     load(true);
   });
   d.showModal();
+}
+
+// ---- Edit
+function openEdit(r) {
+  const d = $("#dlg-edit");
+  d.innerHTML = `<form method="dialog" id="f-edit">${dlgHead(t("ed_title", { name: r.name }))}
+    <div class="dlg-body">
+      <div class="field"><span class="lbl">${t("add_source")}</span><div class="ro">${sourceLink(r.url)}</div></div>
+      <div class="field"><label for="e-fork">${t("add_fork")}</label>
+        <input type="text" id="e-fork" value="${esc(r.fork || "")}" placeholder="owner/repo" autocomplete="off" spellcheck="false">
+        <small>${t("ed_fork_hint")}</small></div>
+      <p class="note bad" id="e-note" hidden></p>
+    </div>
+    <div class="dlg-foot"><button class="btn" value="cancel" formmethod="dialog" formnovalidate>${t("cancel")}</button>
+      <button class="btn primary" type="submit">${icon("check")}${t("save")}</button></div></form>`;
+  const note = d.querySelector("#e-note");
+  d.querySelector("#f-edit").addEventListener("submit", async e => {
+    if (e.submitter && e.submitter.value === "cancel") return;
+    e.preventDefault();
+    const fork = d.querySelector("#e-fork").value.trim();
+    if (fork === (r.fork || "")) { d.close(); return; }
+    try {
+      const saved = await api("PATCH", `api/repos/${encodeURIComponent(r.name)}`, { fork });
+      d.close();
+      toast(saved.fork ? tr("t_fork_set", { name: r.name, fork: saved.fork }) : tr("t_fork_removed", { name: r.name }));
+      load(true);
+    } catch (err) { note.hidden = false; note.textContent = errText(err); }
+  });
+  d.showModal();
+  d.querySelector("#e-fork").focus();
 }
 
 // ---- Remove

@@ -20,6 +20,7 @@ Everything is managed from a web dashboard:
 - review and accept a blocked update;
 - see each repository's history and download its archives;
 - pause or remove a repository;
+- edit a repository to add, change or remove its GitHub fork;
 - change settings, language and theme;
 - set the Discord webhook and the GitHub token.
 
@@ -97,6 +98,7 @@ Messages from v1 are kept in each repository's history, in their original langua
 | Check frequency | every 6 h | 1, 2, 3, 6, 12 or 24 hours |
 | Archives kept per repository | 5 | Rotation of the local `.bundle` files |
 | Block when a branch loses more than | 50 % | Share of files lost at once that triggers a block |
+| Skip this check below | 10 files | A main branch with fewer files than this can lose files without being blocked: on a tiny repository, a few deleted files are already a large share |
 | Ignored branches | `release-please--*`, `dependabot/*`, `renovate/*` | Bot branches rewritten all the time: neither saved nor notified. Comma-separated, `*` allowed |
 | Also notify when nothing changed | off | Useful to check that ForkWatch is still running |
 
@@ -132,6 +134,15 @@ Click **Add** and paste a URL:
 - **Any other Git URL** (GitLab, Gitea…): ForkWatch watches it directly, without automatic detection.
 
 You can adjust the name, source and fork before confirming. The first check starts right away.
+
+## Editing a repository
+
+Open the card's **⋯** menu and click **Edit…** to change the GitHub fork linked to a repository:
+
+- type `owner/repo` or paste the fork's GitHub URL to add or replace it;
+- leave the field empty to remove it. The fork is then no longer synced, and nothing is deleted on GitHub.
+
+The name and the source can't be changed: remove the repository and add it again instead. Its archives are kept.
 
 ## GitHub token
 
@@ -219,7 +230,9 @@ The dashboard is a thin client on a small JSON API:
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/status` | Settings, run state, repositories, history, archives |
+| GET | `/api/health` | `{"ok", "version"}`, used by the container health check |
 | PUT | `/api/settings` | Update the settings |
+| PUT | `/api/secrets` | `{"discord_webhook", "github_token", "public_url"}` → set or clear (empty string) |
 | POST | `/api/run` | Check all repositories |
 | POST | `/api/resolve` | `{"url"}` → detected name, source and fork |
 | POST | `/api/repos` | `{"name", "url", "fork"}` → add a repository |
@@ -228,13 +241,18 @@ The dashboard is a thin client on a small JSON API:
 | POST | `/api/repos/NAME/check` | Check one repository |
 | POST | `/api/repos/NAME/accept` | Apply a blocked update |
 | GET | `/api/repos/NAME/archives/FILE` | Download an archive |
-| POST | `/api/test-notification` | Send a Discord test message |
+| POST | `/api/test-notification` | Send a Discord test message (`{"discord_webhook"}` to test an unsaved URL) |
 
 ## Security
 
 The dashboard has **no authentication**, and it can accept updates, remove repositories and replace the webhook or the token. It never displays the secrets, but anyone who can open it can overwrite them. Keep it on the local network, or reach it through the VPN, and never expose it publicly.
 
 ## Changelog
+
+### 2.2.0
+- Everything the API can do is now available from the dashboard.
+- New **Edit…** action in the card's **⋯** menu: add, change or remove the GitHub fork of a repository.
+- New **Skip this check below** setting: the number of files under which the file-loss check doesn't apply (it was only settable through the API).
 
 ### 2.1.1
 - Fixed: the **Cancel** and **×** buttons of the dialogs did nothing when a field was empty or invalid (the browser asked to fill in the field instead of closing the dialog).

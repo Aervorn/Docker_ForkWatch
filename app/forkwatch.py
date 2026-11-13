@@ -29,7 +29,7 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "2.1.1"
+VERSION = "2.2.0"
 
 DATA = Path(os.environ.get("FORKWATCH_DATA_DIR", "/data"))
 LEGACY_REPOS_FILE = Path(os.environ.get("FORKWATCH_REPOS_FILE", "/config/repos.conf"))
@@ -1171,6 +1171,7 @@ def make_handler(store, engine, runner):
                             if not fork:
                                 raise ApiError("invalid_fork")
                         engine.update(name, fork=fork)
+                        log(f"[{name}] fork {'set to ' + fork if fork else 'removed'}")
                     return self.send(200, engine.get(name))
                 if method == "DELETE" and not action:
                     if runner.snapshot()["current"] == name:
